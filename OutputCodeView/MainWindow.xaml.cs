@@ -38,7 +38,7 @@ namespace OutputCodeView
         private void SelectText_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             CodeForSystem type = (CodeForSystem)SelectText.SelectedIndex;
-            string codes = "";
+            string codes = "\n";
             if (type == CodeForSystem.RES)
             {
                 #region AES加密系统
@@ -84,25 +84,25 @@ namespace OutputCodeView
                 codes += "// ASCII char to integer maping \n";
                 for (int i = 0; i < 256; i++)
                 {
-                    codes += "DataTableSetInt(true, libWH_GVC_RES_NameASCII + \"\\x" + i.ToString("X") + "\", " + i.ToString() + ");\n";
+                    codes += "DataTableSetInt(true, libWH_GVC_RES_NameASCIIToInt + \"\\x" + i.ToString("X2") + "\", " + i.ToString() + ");\n";
                 }
 
-                codes += "// S-box transformation table \n";
-                for (int j = 0; j < 16; j++)
+                codes += "\n// ASCII integer to char maping \n";
+                for (int i = 0; i < 256; i++)
                 {
-                    for (int i = 0; i < 16; i++)
-                    {
-                        codes += "libWH_GV_RES_RijndaelEncryptionSboxTransformationTable[" + j.ToString() + "][" + i.ToString() + "] = 0x" + sbox[j * 16 + i].ToString("X2") + ";\n";
-                    }
+                    codes += "DataTableSetString(true, libWH_GVC_RES_NameASCIIToChar + \"" + i.ToString() + "\", \"\\x" + i.ToString("X2") + "\");\n";
                 }
 
-                codes += "// Inverse S-box transformation table \n";
-                for (int j = 0; j < 16; j++)
+                codes += "\n// S-box transformation table \n";
+                for (int i = 0; i < 256; i++)
                 {
-                    for (int i = 0; i < 16; i++)
-                    {
-                        codes += "libWH_GV_RES_RijndaelEncryptionInverseSboxTransformationTable[" + j.ToString() + "][" + i.ToString() + "] = 0x" + isbox[j * 16 + i].ToString("X") + ";\n";
-                    }
+                    codes += "libWH_GV_RES_RijndaelEncryptionSboxTransformationTable[" + i.ToString() + "] = 0x" + sbox[i].ToString("X2") + ";\n";
+                }
+
+                codes += "\n// Inverse S-box transformation table \n";
+                for (int i = 0; i < 256; i++)
+                {
+                    codes += "libWH_GV_RES_RijndaelEncryptionInverseSboxTransformationTable[" + i.ToString() + "] = 0x" + isbox[i].ToString("X2") + ";\n";
                 }
 
                 #endregion
