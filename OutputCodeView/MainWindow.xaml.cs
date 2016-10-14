@@ -38,10 +38,25 @@ namespace OutputCodeView
         private void SelectText_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             CodeForSystem type = (CodeForSystem)SelectText.SelectedIndex;
-            string codes = "\n";
+            string codes = "\r\n";
             if (type == CodeForSystem.RES)
             {
                 #region AES加密系统
+                int[][] confusionMatrix = new int[4][]
+                {
+                    new int[4] { 0x02, 0x03, 0x01, 0x01 },
+                    new int[4] { 0x01, 0x02, 0x03, 0x01 },
+                    new int[4] { 0x01, 0x01, 0x02, 0x03 },
+                    new int[4] { 0x03, 0x01, 0x01, 0x02 },
+                };
+
+                int[][] inverseConfusionMatrix = new int[4][]
+                {
+                    new int[4] { 0x0E, 0x0B, 0x0D, 0x09 },
+                    new int[4] { 0x09, 0x0E, 0x0B, 0x0D },
+                    new int[4] { 0x0D, 0x09, 0x0E, 0x0B },
+                    new int[4] { 0x0B, 0x0D, 0x09, 0x0E },
+                };
                 int[] sbox = new int[256] {
 	            // 0     1     2     3     4     5     6     7     8     9     a     b     c     d     e     f
 	            0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76, // 0
@@ -79,30 +94,49 @@ namespace OutputCodeView
 	            0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61, // e
 	            0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d};// f
 
-                codes += "void LibWH_FUNC_RES_InitialFunction()\r\n{\n";
+                codes += "void LibWH_FUNC_RES_InitialFunction()\r\n{\r\n";
 
-                codes += "// ASCII char to integer maping \n";
-                for (int i = 0; i < 256; i++)
+                codes += "// Generation columns Confusion matrix. \r\n";
+                for (int i = 0; i < 4; i++)
                 {
-                    codes += "DataTableSetInt(true, libWH_GVC_RES_NameASCIIToInt + \"\\x" + i.ToString("X2") + "\", " + i.ToString() + ");\n";
+                    for (int j = 0; j < 4; j++)
+                    {
+                        codes += "libWH_GV_RES_ColumnsConfusionVector_" + i + "[" + j + "] = " + confusionMatrix[i][j] + ";\r\n";
+                    }
+                    codes += "libWH_GV_RES_ColumnsConfusionMatrix" + i + " = libWH_GV_RES_ColumnsConfusionVector_" + i + ";\r\n";
                 }
 
-                codes += "\n// ASCII integer to char maping \n";
-                for (int i = 0; i < 256; i++)
+                for (int i = 0; i < 4; i++)
                 {
-                    codes += "DataTableSetString(true, libWH_GVC_RES_NameASCIIToChar + \"" + i.ToString() + "\", \"\\x" + i.ToString("X2") + "\");\n";
+                    for (int j = 0; j < 4; j++)
+                    {
+                        codes += "libWH_GV_RES_InverseColumnsConfusionVector_" + i + "[" + j + "] = " + inverseConfusionMatrix[i][j] + ";\r\n";
+                    }
+                    codes += "libWH_GV_RES_InverseColumnsConfusionMatrix" + i + " = libWH_GV_RES_InverseColumnsConfusionVector_" + i + ";\r\n";
                 }
 
-                codes += "\n// S-box transformation table \n";
+                codes += "// ASCII char to integer maping \r\n";
                 for (int i = 0; i < 256; i++)
                 {
-                    codes += "libWH_GV_RES_RijndaelEncryptionSboxTransformationTable[" + i.ToString() + "] = 0x" + sbox[i].ToString("X2") + ";\n";
+                    codes += "DataTableSetInt(true, libWH_GVC_RES_NameASCIIToInt + \"\\x" + i.ToString("X2") + "\", " + i.ToString() + ");\r\n";
                 }
 
-                codes += "\n// Inverse S-box transformation table \n";
+                codes += "\r\n// ASCII integer to char maping \r\n";
                 for (int i = 0; i < 256; i++)
                 {
-                    codes += "libWH_GV_RES_RijndaelEncryptionInverseSboxTransformationTable[" + i.ToString() + "] = 0x" + isbox[i].ToString("X2") + ";\n";
+                    codes += "DataTableSetString(true, libWH_GVC_RES_NameASCIIToChar + \"" + i.ToString() + "\", \"\\x" + i.ToString("X2") + "\");\r\n";
+                }
+
+                codes += "\r\n// S-box transformation table \r\n";
+                for (int i = 0; i < 256; i++)
+                {
+                    codes += "libWH_GV_RES_RijndaelEncryptionSboxTransformationTable[" + i.ToString() + "] = 0x" + sbox[i].ToString("X2") + ";\r\n";
+                }
+
+                codes += "\r\n// Inverse S-box transformation table \r\n";
+                for (int i = 0; i < 256; i++)
+                {
+                    codes += "libWH_GV_RES_RijndaelEncryptionInverseSboxTransformationTable[" + i.ToString() + "] = 0x" + isbox[i].ToString("X2") + ";\r\n";
                 }
 
                 #endregion
@@ -249,82 +283,82 @@ namespace OutputCodeView
                 new double [3] { 2, 0, 1 },
                 };
 
-                codes += "void LibEditor_FUNC_RWS_InitialFunction()\r\n{\n";
+                codes += "void LibEditor_FUNC_RWS_InitialFunction()\r\n{\r\n";
 
-                codes += "// Link relation of Gate side type \n";
+                codes += "// Link relation of Gate side type \r\n";
 
                 for (int i = 0; i < 7; i++)
                 {
                     for (int j = 0; j < 7; j++)
                     {
-                        codes += "libEditor_GV_RWS_ConcentrateModeLinkRelation[" + (i).ToString() + "][" + j.ToString() + "] = " + linkAble[i][j] + ";\n";
+                        codes += "libEditor_GV_RWS_ConcentrateModeLinkRelation[" + (i).ToString() + "][" + j.ToString() + "] = " + linkAble[i][j] + ";\r\n";
                     }
                 }
 
-                codes += "\r\n// Check for this cube in  concentrate mode \n";
+                codes += "\r\n// Check for this cube in  concentrate mode \r\n";
 
                 for (int i = 0; i < 9; i++)
                 {
                     for (int j = 0; j < typeGateCount[i]; j++)
                     {
-                        codes += "libEditor_GV_RWS_ConcentrateModeCubeCheckValue[" + (i).ToString() + "][" + j.ToString() + "] = " + (sideType[i][j]).ToString() + ";\n";
+                        codes += "libEditor_GV_RWS_ConcentrateModeCubeCheckValue[" + (i).ToString() + "][" + j.ToString() + "] = " + (sideType[i][j]).ToString() + ";\r\n";
                     }
                 }
 
-                codes += "\r\n// Link Gate priority order\n";
-                codes += "libEditor_GV_RWS_CubeSideRandomValue[0] = -1;\n";
-                codes += "libEditor_GV_RWS_CubeSideRandomValue[1] = 0;\n";
-                codes += "libEditor_GV_RWS_CubeSideRandomValue[2] = 2;\n";
-                codes += "libEditor_GV_RWS_CubeSideRandomValue[3] = 8;\n";
-                codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[0][0] = 0;\n";
-                codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[1][0] = 0;\n";
-                codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[1][1] = 1;\n";
-                codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[2][0] = 1;\n";
-                codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[2][1] = 0;\n";
+                codes += "\r\n// Link Gate priority order\r\n";
+                codes += "libEditor_GV_RWS_CubeSideRandomValue[0] = -1;\r\n";
+                codes += "libEditor_GV_RWS_CubeSideRandomValue[1] = 0;\r\n";
+                codes += "libEditor_GV_RWS_CubeSideRandomValue[2] = 2;\r\n";
+                codes += "libEditor_GV_RWS_CubeSideRandomValue[3] = 8;\r\n";
+                codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[0][0] = 0;\r\n";
+                codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[1][0] = 0;\r\n";
+                codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[1][1] = 1;\r\n";
+                codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[2][0] = 1;\r\n";
+                codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[2][1] = 0;\r\n";
                 for (int i = 0; i < 6; i++)
                 {
                     for (int j = 0; j < 3; j++)
                     {
-                        codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[" + (i + 3).ToString() + "][" + j.ToString() + "] = " + (sideOrder[i][j]).ToString() + ";\n";
+                        codes += "libEditor_GV_RWS_CubeSideRandomPriorityOrder[" + (i + 3).ToString() + "][" + j.ToString() + "] = " + (sideOrder[i][j]).ToString() + ";\r\n";
                     }
                 }
 
-                codes += "\r\n// Set Side Length\n";
+                codes += "\r\n// Set Side Length\r\n";
 
                 for (int i = 0; i < 9; i++)
                 {
-                    codes += "libEditor_GV_RWS_CubeSideLength[" + i.ToString() + "][0] = " + (side[i][0]).ToString() + ";\n";
-                    codes += "libEditor_GV_RWS_CubeSideLength[" + i.ToString() + "][1] = " + (side[i][1]).ToString() + ";\n";
+                    codes += "libEditor_GV_RWS_CubeSideLength[" + i.ToString() + "][0] = " + (side[i][0]).ToString() + ";\r\n";
+                    codes += "libEditor_GV_RWS_CubeSideLength[" + i.ToString() + "][1] = " + (side[i][1]).ToString() + ";\r\n";
                 }
 
-                codes += "\r\n// From Cube record Gate index to 12 Gate index\n";
+                codes += "\r\n// From Cube record Gate index to 12 Gate index\r\n";
 
                 for (int i = 0; i < 9; i++)
                 {
                     for (int j = 0; j < 12; j++)
                     {
-                        codes += "libEditor_GV_RWS_CubeInTypeGateIndexToIndex[" + i.ToString() + "][" + j.ToString() + "] = " + (untranslate[i][j]).ToString() + ";\n";
+                        codes += "libEditor_GV_RWS_CubeInTypeGateIndexToIndex[" + i.ToString() + "][" + j.ToString() + "] = " + (untranslate[i][j]).ToString() + ";\r\n";
                     }
                 }
 
-                codes += "\r\n// Count of Gate in Cube type\n";
+                codes += "\r\n// Count of Gate in Cube type\r\n";
 
                 for (int i = 0; i < 9; i++)
                 {
-                    codes += "libEditor_GV_RWS_GateCountPerCubeType[" + i.ToString() + "] = " + (typeGateCount[i]).ToString() + ";\n";
+                    codes += "libEditor_GV_RWS_GateCountPerCubeType[" + i.ToString() + "] = " + (typeGateCount[i]).ToString() + ";\r\n";
                 }
 
-                codes += "\r\n// Count of Gate in Cube Side\n";
+                codes += "\r\n// Count of Gate in Cube Side\r\n";
 
                 for (int i = 0; i < 9; i++)
                 {
                     for (int j = 0; j < 4; j++)
                     {
-                        codes += "libEditor_GV_RWS_GateCountPerSide[" + i.ToString() + "][" + j.ToString() + "] = " + (sideGateCount[i][j]).ToString() + ";\n";
+                        codes += "libEditor_GV_RWS_GateCountPerSide[" + i.ToString() + "][" + j.ToString() + "] = " + (sideGateCount[i][j]).ToString() + ";\r\n";
                     }
                 }
 
-                codes += "\r\n// The first index of Gate of Cube side\n";
+                codes += "\r\n// The first index of Gate of Cube side\r\n";
 
                 for (int i = 0; i < 9; i++)
                 {
@@ -332,16 +366,16 @@ namespace OutputCodeView
                     {
                         if (j < typeGateCount[i])
                         {
-                            codes += "libEditor_GV_RWS_LinkGateSideStartType[" + i.ToString() + "][" + j.ToString() + "] = " + (faceSideStart[i][j]).ToString() + ";\n";
+                            codes += "libEditor_GV_RWS_LinkGateSideStartType[" + i.ToString() + "][" + j.ToString() + "] = " + (faceSideStart[i][j]).ToString() + ";\r\n";
                         }
                         else
                         {
-                            codes += "libEditor_GV_RWS_LinkGateSideStartType[" + i.ToString() + "][" + j.ToString() + "] = -1;\n";
+                            codes += "libEditor_GV_RWS_LinkGateSideStartType[" + i.ToString() + "][" + j.ToString() + "] = -1;\r\n";
                         }
                     }
                 }
 
-                codes += "\r\n// The opposite Side index of Gate belong, 0:Bottom, 1:Right, 2:Up, 3:Left\n";
+                codes += "\r\n// The opposite Side index of Gate belong, 0:Bottom, 1:Right, 2:Up, 3:Left\r\n";
 
                 for (int i = 0; i < 9; i++)
                 {
@@ -349,37 +383,7 @@ namespace OutputCodeView
                     {
                         if (j < typeGateCount[i])
                         {
-                            codes += "libEditor_GV_RWS_OppositeSideIndexForGate[" + i.ToString() + "][" + j.ToString() + "] = " + (oppositesIndex[i][j]).ToString() + ";\n";
-                        }
-                        else
-                        {
-                            break;
-                        }
-
-                    }
-                }
-
-                codes += "\r\n// Set Vertex Moving From Center\n";
-
-                for (int i = 0; i < 9; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        codes += "libEditor_GV_RWS_CubeVertexMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] / 2 * valueFace[j][0]).ToString() + ";\n";
-                        codes += "libEditor_GV_RWS_CubeVertexMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] / 2 * valueFace[j][1]).ToString() + ";\n";
-                    }
-                }
-
-                codes += "\r\n// Set Gate Moving From Center\n";
-
-                for (int i = 0; i < 9; i++)
-                {
-                    for (int j = 0; j < 12; j++)
-                    {
-                        if (j < typeGateCount[i])
-                        {
-                            codes += "libEditor_GV_RWS_CubeGateMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] * rate[translate[i][j]][0] / 2).ToString() + ";\n";
-                            codes += "libEditor_GV_RWS_CubeGateMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] * rate[translate[i][j]][1] / 2).ToString() + ";\n";
+                            codes += "libEditor_GV_RWS_OppositeSideIndexForGate[" + i.ToString() + "][" + j.ToString() + "] = " + (oppositesIndex[i][j]).ToString() + ";\r\n";
                         }
                         else
                         {
@@ -389,7 +393,37 @@ namespace OutputCodeView
                     }
                 }
 
-                codes += "\r\n// Set Gate Test Moving From Center\n";
+                codes += "\r\n// Set Vertex Moving From Center\r\n";
+
+                for (int i = 0; i < 9; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        codes += "libEditor_GV_RWS_CubeVertexMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] / 2 * valueFace[j][0]).ToString() + ";\r\n";
+                        codes += "libEditor_GV_RWS_CubeVertexMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] / 2 * valueFace[j][1]).ToString() + ";\r\n";
+                    }
+                }
+
+                codes += "\r\n// Set Gate Moving From Center\r\n";
+
+                for (int i = 0; i < 9; i++)
+                {
+                    for (int j = 0; j < 12; j++)
+                    {
+                        if (j < typeGateCount[i])
+                        {
+                            codes += "libEditor_GV_RWS_CubeGateMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] * rate[translate[i][j]][0] / 2).ToString() + ";\r\n";
+                            codes += "libEditor_GV_RWS_CubeGateMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] * rate[translate[i][j]][1] / 2).ToString() + ";\r\n";
+                        }
+                        else
+                        {
+                            break;
+                        }
+
+                    }
+                }
+
+                codes += "\r\n// Set Gate Test Moving From Center\r\n";
 
                 for (int i = 0; i < 9; i++)
                 {
@@ -400,20 +434,20 @@ namespace OutputCodeView
                             switch (oppositesIndex[i][j])
                             {
                                 case 2:
-                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] * rate[translate[i][j]][0] / 2).ToString() + ";\n";
-                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] * rate[translate[i][j]][1] / 2 - 15).ToString() + ";\n";
+                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] * rate[translate[i][j]][0] / 2).ToString() + ";\r\n";
+                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] * rate[translate[i][j]][1] / 2 - 15).ToString() + ";\r\n";
                                     break;
                                 case 3:
-                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] * rate[translate[i][j]][0] / 2 + 15).ToString() + ";\n";
-                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] * rate[translate[i][j]][1] / 2).ToString() + ";\n";
+                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] * rate[translate[i][j]][0] / 2 + 15).ToString() + ";\r\n";
+                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] * rate[translate[i][j]][1] / 2).ToString() + ";\r\n";
                                     break;
                                 case 0:
-                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] * rate[translate[i][j]][0] / 2).ToString() + ";\n";
-                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] * rate[translate[i][j]][1] / 2 + 15).ToString() + ";\n";
+                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] * rate[translate[i][j]][0] / 2).ToString() + ";\r\n";
+                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] * rate[translate[i][j]][1] / 2 + 15).ToString() + ";\r\n";
                                     break;
                                 case 1:
-                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] * rate[translate[i][j]][0] / 2 - 15).ToString() + ";\n";
-                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] * rate[translate[i][j]][1] / 2).ToString() + ";\n";
+                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][0] = " + (side[i][0] * rate[translate[i][j]][0] / 2 - 15).ToString() + ";\r\n";
+                                    codes += "libEditor_GV_RWS_CubeGateTestMoving[" + i.ToString() + "][" + j.ToString() + "][1] = " + (side[i][1] * rate[translate[i][j]][1] / 2).ToString() + ";\r\n";
                                     break;
                                 default:
                                     break;
@@ -425,7 +459,7 @@ namespace OutputCodeView
                         }
                     }
                 }
-                codes += "\n// Set Cube overlap test\n";
+                codes += "\r\n// Set Cube overlap test\r\n";
                 for (int i = 0; i < 9; i++)
                 {
                     int l = 0;
@@ -433,12 +467,12 @@ namespace OutputCodeView
                     {
                         for (double k = (side[i][1] % 14 - side[i][1]) / 2; k < side[i][1] / 2; k += 14)
                         {
-                            codes += "libEditor_GV_RWS_CubeOverlapTestMoving[" + i.ToString() + "][" + l.ToString() + "][0] = " + j.ToString() + ";\n";
-                            codes += "libEditor_GV_RWS_CubeOverlapTestMoving[" + i.ToString() + "][" + l.ToString() + "][1] = " + k.ToString() + ";\n";
+                            codes += "libEditor_GV_RWS_CubeOverlapTestMoving[" + i.ToString() + "][" + l.ToString() + "][0] = " + j.ToString() + ";\r\n";
+                            codes += "libEditor_GV_RWS_CubeOverlapTestMoving[" + i.ToString() + "][" + l.ToString() + "][1] = " + k.ToString() + ";\r\n";
                             l++;
                         }
                     }
-                    codes += "libEditor_GV_RWS_CubeOverlapTestCount[" + i.ToString() + "] = " + l.ToString() + ";\n";
+                    codes += "libEditor_GV_RWS_CubeOverlapTestCount[" + i.ToString() + "] = " + l.ToString() + ";\r\n";
                 }
                 #endregion
             }
