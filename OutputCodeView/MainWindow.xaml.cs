@@ -22,8 +22,8 @@ namespace OutputCodeView
     {
         public enum CodeForSystem
         {
-            RWS,
             RES,
+            RWS,
         };
         public MainWindow()
         {
@@ -41,22 +41,9 @@ namespace OutputCodeView
             string codes = "\r\n";
             if (type == CodeForSystem.RES)
             {
-                #region AES加密系统
-                int[][] confusionMatrix = new int[4][]
-                {
-                    new int[4] { 0x02, 0x03, 0x01, 0x01 },
-                    new int[4] { 0x01, 0x02, 0x03, 0x01 },
-                    new int[4] { 0x01, 0x01, 0x02, 0x03 },
-                    new int[4] { 0x03, 0x01, 0x01, 0x02 },
-                };
-
-                int[][] inverseConfusionMatrix = new int[4][]
-                {
-                    new int[4] { 0x0E, 0x0B, 0x0D, 0x09 },
-                    new int[4] { 0x09, 0x0E, 0x0B, 0x0D },
-                    new int[4] { 0x0D, 0x09, 0x0E, 0x0B },
-                    new int[4] { 0x0B, 0x0D, 0x09, 0x0E },
-                };
+                #region AES加密系统                
+                int[] confusionMatrix = new int[4] { 0x02, 0x03, 0x01, 0x01 };
+                int[] inverseConfusionMatrix = new int[4] { 0x0E, 0x0B, 0x0D, 0x09 };
                 int[] sbox = new int[256] {
 	            // 0     1     2     3     4     5     6     7     8     9     a     b     c     d     e     f
 	            0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76, // 0
@@ -99,23 +86,15 @@ namespace OutputCodeView
                 codes += "// Generation columns Confusion matrix. \r\n";
                 for (int i = 0; i < 4; i++)
                 {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        codes += "libWH_GV_RES_ColumnsConfusionVector_" + i + "[" + j + "] = " + confusionMatrix[i][j] + ";\r\n";
-                    }
-                    codes += "libWH_GV_RES_ColumnsConfusionMatrix" + i + " = libWH_GV_RES_ColumnsConfusionVector_" + i + ";\r\n";
+                    codes += "libWH_GV_RES_RijndaelEncryptionInverseConfusionVector" + "[" + i + "] = " + confusionMatrix[i] + ";\r\n";
                 }
 
                 for (int i = 0; i < 4; i++)
                 {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        codes += "libWH_GV_RES_InverseColumnsConfusionVector_" + i + "[" + j + "] = " + inverseConfusionMatrix[i][j] + ";\r\n";
-                    }
-                    codes += "libWH_GV_RES_InverseColumnsConfusionMatrix" + i + " = libWH_GV_RES_InverseColumnsConfusionVector_" + i + ";\r\n";
+                    codes += "libWH_GV_RES_RijndaelEncryptionInverseReverseConfusionVector" + "[" + i + "] = " + inverseConfusionMatrix[i] + ";\r\n";
                 }
 
-                codes += "// ASCII char to integer maping \r\n";
+                codes += "\r\n// ASCII char to integer maping \r\n";
                 for (int i = 0; i < 256; i++)
                 {
                     codes += "DataTableSetInt(true, libWH_GVC_RES_NameASCIIToInt + \"\\x" + i.ToString("X2") + "\", " + i.ToString() + ");\r\n";
